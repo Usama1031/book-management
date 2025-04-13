@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/usama1031/book-management/pkg/config"
 	"gorm.io/gorm"
 )
@@ -9,9 +11,12 @@ var db *gorm.DB
 
 type Book struct {
 	gorm.Model
-	Name        string `gorm:"" json:"name"`
-	Author      string `json:"author"`
-	Publication string `json:"publication"`
+	Name        string    `gorm:"" json:"name"`
+	Author      string    `json:"author"`
+	Publication string    `json:"publication"`
+	UserID      string    `json:"uid"`
+	Created_at  time.Time `json:"created_at"`
+	Updated_at  time.Time `json:"updated_at"`
 }
 
 func init() {
