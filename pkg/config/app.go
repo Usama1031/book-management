@@ -15,7 +15,6 @@ var (
 )
 
 func Connect() {
-	// dsn := "root:rootroot@tcp(127.0.0.1:3306)/book?charset=utf8mb4&parseTime=True&loc=Local"
 
 	err := godotenv.Load(".env")
 	if err != nil {
