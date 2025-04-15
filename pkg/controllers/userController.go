@@ -85,7 +85,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User crated successfully",
+		"message": "User created successfully",
 	})
 }
 

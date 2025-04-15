@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	"github.com/usama1031/book-management/pkg/config"
 	"gorm.io/gorm"
 )
@@ -11,12 +9,10 @@ var db *gorm.DB
 
 type Book struct {
 	gorm.Model
-	Name        string    `gorm:"" json:"name"`
-	Author      string    `json:"author"`
-	Publication string    `json:"publication"`
-	UserID      string    `json:"uid"`
-	Created_at  time.Time `json:"created_at"`
-	Updated_at  time.Time `json:"updated_at"`
+	Name        string `gorm:"" json:"name"`
+	Author      string `json:"author"`
+	Publication string `json:"publication"`
+	UserID      string `json:"uid"`
 }
 
 func init() {
@@ -37,10 +33,15 @@ func GetAllBooks() []Book {
 	return books
 }
 
+func GetAllBooksByUserID(Id string) ([]Book, *gorm.DB) {
+	var books []Book
+
+	res := db.Where("user_id = ?", Id).Find(&books)
+	return books, res
+}
+
 func GetBookByID(Id int64) (*Book, *gorm.DB) {
 	var getBook Book
-
-	// res := db.Where("ID=?", Id).Find(&getBook)
 	res := db.First(&getBook, Id)
 	return &getBook, res
 }

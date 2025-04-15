@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -11,22 +12,34 @@ import (
 	"github.com/usama1031/book-management/pkg/utils"
 )
 
-var NewBook models.Book
-
 func GetBook(w http.ResponseWriter, r *http.Request) {
 
 	userType := r.Context().Value("user_type").(string)
+	userID := r.Context().Value("uid").(string)
 
-	if userType != "ADMIN" {
-		http.Error(w, "Unauthorized: Admins only", http.StatusUnauthorized)
-		return
+	var books []models.Book
+
+	if userType == "ADMIN" {
+
+		books = models.GetAllBooks()
+
+	} else {
+		var res []models.Book
+
+		res, result := models.GetAllBooksByUserID(userID)
+
+		if result.Error != nil {
+			http.Error(w, "Could not retrieve books", http.StatusInternalServerError)
+			return
+		}
+
+		books = res
 	}
-	newBooks := models.GetAllBooks()
 
-	res, _ := json.Marshal(newBooks)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(res)
+	json.NewEncoder(w).Encode(books)
+
 }
 
 func GetBookByID(w http.ResponseWriter, r *http.Request) {
@@ -45,8 +58,6 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// res, _ = json.Marshal(bookDetails)
-
 	userType := r.Context().Value("user_type").(string)
 	userID := r.Context().Value("uid").(string)
 
@@ -61,8 +72,16 @@ func GetBookByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateBook(w http.ResponseWriter, r *http.Request) {
+
+	userID := r.Context().Value("uid").(string)
+
+	log.Println(userID)
+
 	CreateBook := &models.Book{}
 	utils.ParseBody(r, CreateBook)
+
+	CreateBook.UserID = userID
+
 	b := CreateBook.CreateBook()
 	res, _ := json.Marshal(b)
 
@@ -80,10 +99,25 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("error while parsing")
 	}
 
+	userType := r.Context().Value("user_type").(string)
+	userID := r.Context().Value("uid").(string)
+
+	bookDetails, result := models.GetBookByID(Id)
+
+	if result.Error != nil {
+		http.Error(w, "Book not found", http.StatusNotFound)
+		return
+	}
+
+	if userType != "ADMIN" && userID != bookDetails.UserID {
+		http.Error(w, "Do not have the permission to perform this action!", http.StatusUnauthorized)
+		return
+	}
+
 	book := models.DeleteBook(Id)
 
 	res, _ := json.Marshal(book)
-	w.Header().Set("Content-Type", "pkglication/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
@@ -103,6 +137,14 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bookDetails, db := models.GetBookByID(Id)
+
+	userType := r.Context().Value("user_type").(string)
+	userID := r.Context().Value("uid").(string)
+
+	if userType != "ADMIN" && userID != bookDetails.UserID {
+		http.Error(w, "Do not have the permission to perform this action!", http.StatusUnauthorized)
+		return
+	}
 
 	if updateBook.Name != "" {
 		bookDetails.Name = updateBook.Name

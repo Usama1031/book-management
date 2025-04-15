@@ -30,8 +30,6 @@ func Connect() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		user, pass, host, port, name)
 
-	fmt.Println(dsn)
-
 	d, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
